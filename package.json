@@ -1,0 +1,21 @@
+{
+  "name": "tennu-modules",
+  "version": "0.9.0",
+  "description": "Nark module subsystem.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Havvy/tennu-modules-loader.git"
+  },
+  "keywords": [
+    "tennu"
+  ],
+  "author": "Havvy (Ryan S. Scheel)",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/Havvy/tennu-modules-loader/issues"
+  }
+}
