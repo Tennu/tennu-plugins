@@ -1,6 +1,6 @@
 ## tennu modules
 
-This is the Modules subsystem of the Nark IRC Framework for Node.
+This is the Modules subsystem of the Tennu IRC Framework for Node.
 
 This module allows for creating module systems than take module constructors,
 and initialize tennu modules.
@@ -46,7 +46,7 @@ An object where the property names are the events to listen to and the values
 are the callbacks that are listening. They are passed to the subscriber passed
 to the constructor of the Module System.
 
-If you are using the default Nark setup, then the event names that start with
+If you are using the default Tennu setup, then the event names that start with
 a '!' are passed to the command handler and other events are passed to the
 message handler. You can also have the callback listen to multiple events by
 separating the events with a space.
@@ -74,15 +74,17 @@ If the module cannot be found, an error will be thrown.
 For this examples, presume that this module system is located at
 /home/you/node/yourbot/node_modules/tennu/node_modules/tennu-modules/index.js.
 
-Nark loads with the default modules, and calls it's module system's require
+Tennu loads with the default modules, and calls it's module system's require
 method for the server module:  require('sever'). It checks for modules in the
 following places before finding it:
 
+```
 /home/you/node/yourbot/node_modules/tennu/node_modules/tennu-modules/tennu_modules/server
 /home/you/node/yourbot/node_modules/tennu/node_modules/tennu-modules/node_modules/tennu-server
 /home/you/node/yourbot/node_modules/tennu/node_modules/tennu_modules/server
 /home/you/node/yourbot/node_modules/tennu/node_modules/node_modules/tennu-server
 /home/you/node/yourbot/node_modules/tennu/tennu_modules/server
+```
 
 Since it is located at that location, it finds it there, and then calls
 the Module System's load method on it.
