@@ -72,7 +72,7 @@ module.exports = function Modules (subscriber, context) {
             try {
                 imports[dep] = tennu_require(dep);
             } catch (e) {
-                throw new Error("Failed to find Nark Module dependency " + dep + " for " + name);
+                throw new Error("Failed to find Tennu module dependency " + dep + " for " + name);
             }
         });
     }

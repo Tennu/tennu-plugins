@@ -1,6 +1,6 @@
 {
   "name": "tennu-modules",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tennu module subsystem.",
   "main": "index.js",
   "scripts": {
