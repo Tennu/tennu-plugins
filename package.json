@@ -21,9 +21,9 @@
   "devDependencies": {
     "mocha": "~1.16.2",
     "better-assert": "~1.0.0",
-    "sinon": "~1.7.3"
+    "sinon": "~1.7.3",
+    "deep-eql": "~0.1.1"
   },
   "dependencies": {
-    "simplesets": "~1.2.0"
   }
 }
