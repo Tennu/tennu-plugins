@@ -1,14 +1,14 @@
 {
   "name": "tennu-modules",
-  "version": "1.0.1",
+  "version": "2.0.0pre0",
   "description": "Tennu module subsystem.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test -R spec"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/Havvy/tennu-modules-loader.git"
+    "url": "git://github.com/Tennu/tennu-modules.git"
   },
   "keywords": [
     "tennu"
@@ -16,6 +16,14 @@
   "author": "Havvy (Ryan S. Scheel)",
   "license": "BSD",
   "bugs": {
-    "url": "https://github.com/Havvy/tennu-modules-loader/issues"
+    "url": "https://github.com/Tennu/tennu-modules/issues"
+  },
+  "devDependencies": {
+    "mocha": "~1.16.2",
+    "better-assert": "~1.0.0",
+    "sinon": "~1.7.3"
+  },
+  "dependencies": {
+    "simplesets": "~1.2.0"
   }
 }
