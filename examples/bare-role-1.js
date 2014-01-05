@@ -3,5 +3,6 @@ module.exports = {
         return {
         };
     },
-    name: 'bare'
+    name: 'bare-role-1',
+    role: 'bare'
 };

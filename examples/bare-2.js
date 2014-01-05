@@ -3,5 +3,5 @@ module.exports = {
         return {
         };
     },
-    name: 'bare'
+    name: 'bare-2'
 };
