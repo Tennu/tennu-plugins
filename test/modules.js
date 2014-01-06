@@ -46,11 +46,14 @@ describe('Module System', function () {
         });
 
         it('will fail with same module name twice', function () {
+            system.initialize(examples['bare']);
+
             try {
                 system.initialize(examples['bare']);
                 assert(false);
             } catch (e) {
                 assert(e instanceof errors.ModuleInitializationError);
+                assert(e instanceof Error);
                 assert(e.module = examples.bare);
             }
         });
@@ -150,6 +153,17 @@ describe('Module System', function () {
         it('skips modules not using the hook', function () {
             system.initialize(examples['bare']);
             assert(!spy.called);
+        });
+
+        it('fails when adding the same hook twice', function () {
+            try {
+                system.addHook('test', function () {});
+                assert('false');
+            } catch (e) {
+                assert(e instanceof errors.HookAlreadyExists);
+                assert(e instanceof errors.RegistryKeyAlreadySet);
+                assert(e instanceof Error);
+            }
         });
     });
 });

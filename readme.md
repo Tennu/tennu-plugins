@@ -9,7 +9,7 @@ The main features of this module system are:
 * Module roles, where modules of that role expose a common interface.
 * Module hooks, where modules can hook into each loading module.
 
-Multiple examples use (Tennu)[https://github.com/Tennu/tennu], since this
+Multiple examples use [Tennu](https://github.com/Tennu/tennu), since this
 module system module was designed for it.
 
 ## Installation
@@ -21,7 +21,7 @@ npm install tennu-modules
 ## Initialization of Module System
 
 ```javascript
-require('tennu-modules')(name: string, context: any, logger: Logger)
+require('tennu-modules')(systemname: string, context: any)
 ```
 
 The name is the name of the module system, and declares the directory type it
@@ -43,6 +43,7 @@ A Module is an object with the following properties:
 ```javascript
 {
     init: function,
+    name: string
     role: string?,
     requires: [string]?,
     requiresRoles: [string]?
@@ -51,8 +52,9 @@ A Module is an object with the following properties:
 
 The init function must return an object. This object is known as the module instance.
 
-Modules are named by their filename. For example, a module at
-tennu_modules/time.js is named 'time', assuming the module system is for Tennu.
+**Note:** The name must exist for initialization. When using the use() method, the modules will
+have their name property rewritten. As such, you don't have to worry about the property
+if you only use `use()`.
 
 The following is the minimally viable module:
 
@@ -60,7 +62,8 @@ The following is the minimally viable module:
 {
     init: function () {
         return {};
-    }
+    },
+    name: 'bare'
 }
 ```
 
@@ -85,7 +88,8 @@ Module B loads module A and then logs A's `exist` property to the console.
         return {
             exports: {exists: true}
         };
-    }
+    },
+    name: 'A'
 }
 
 // Module B
@@ -96,6 +100,7 @@ Module B loads module A and then logs A's `exist` property to the console.
             exports: {}
         };
     },
+    name: 'B'
     requires: ['A']
 }
 ```
@@ -126,7 +131,8 @@ This is what it looks like:
                 }
             }
         };
-    }
+    },
+    name: 'help'
 }
 
 // Module 'time'
@@ -138,7 +144,8 @@ This is what it looks like:
             // ... other properties
             help: "Stuff about time."
         }
-    }
+    },
+    name: 'time'
 }
 ```
 
@@ -172,73 +179,39 @@ modules.use(toUse);
 ```
 
 Create a list of modules that you want to use, and then pass them to
-modules.use(names: [String]).
+modules.use(names: [String], path: String).
 
-The module system will then locate and load the modules in a way
+The module system will then [locate](#Locate%20Modules) and load the modules in a way
 that all dependencies are properly met.
 
 This module can throw various errors. The constructors for these errors can be
 found on the exports object of this module.
 
-1. NoSuchModule - When a module cannot be found. Has properties 'paths'
-and 'name' for the paths searched and the name of the module respectively.
-2. UnmetDependency - A derivative of NoSuchModule, thrown for modules that
-depend on modules that are not loaded nor listed in the passed in array.
-3. UnmetRole - A derivative of UnmetDependency, but for roles.
-4. CyclicDependency - When there are modules that depend on each other.
-5. ModuleInitialzationError - Wraps any errors thrown by a module's init method.
-6. TypeError - When the module doesn't have an init function.
-7. HookAlreadyExists - When multiple modules both try to define the same hook.
+* UnmetDependency
+* NoSuchModule
+* NoSuchRole (Not yet used)
+* CyclicicDependency (Not yet used)
+* ModuleInitializationError
+* RegistryKeyAlreadySet
+* HookAlreadyExists
 
-## Old Stuff
+## Locating Modules
 
-This stuff is old, and has to be rewritten for Tennu Modules 2.0.0.
+The second parameter to `use()` is a path. The module system will look for the following
+places for your module:
 
-#### require(name: string): object throws Error
+%path%/%systemname%_modules/%modulename%.js
+%path%/%systemname%_modules/%modulename%/index.js
+%path%/node_modules/%systemname%-%modulename%/
 
-Starting from one directory higher than this module, recursively checks
-tennu_modules for a node module named '%name%' and then node_modules/tennu-%name%.
+If it cannot find the module there, it will then go up the parent directory, and repeat,
+until it either finds the module or is at the root.
 
-If the module cannot be found, an error will be thrown.
+If the module cannot be found, a NoSuchModule error will be thrown.
 
-##### Example
+## Other Functions
 
-For this examples, presume that this module system is located at
-/home/you/node/yourbot/node_modules/tennu/node_modules/tennu-modules/index.js.
-
-Tennu loads with the default modules, and calls it's module system's require
-method for the server module:  require('sever'). It checks for modules in the
-following places before finding it:
-
-```
-/home/you/node/yourbot/node_modules/tennu/node_modules/tennu-modules/tennu_modules/server
-/home/you/node/yourbot/node_modules/tennu/node_modules/tennu-modules/node_modules/tennu-server
-/home/you/node/yourbot/node_modules/tennu/node_modules/tennu_modules/server
-/home/you/node/yourbot/node_modules/tennu/node_modules/node_modules/tennu-server
-/home/you/node/yourbot/node_modules/tennu/tennu_modules/server
-```
-
-Since it is located at that location, it finds it there, and then calls
-the Module System's load method on it.
-
-#### load(moduleCtor: function, name: String): null throws Error
-
-This is an internal method. You probably will not need to use it.
-
-Loads the module by passing the module constructor the context object and
-expecting a Module object in return.
-
-#### isLoaded(name: String): boolean
-
-Returns true if the module is loaded, and can be required() for its exports
-object without needing to load() it.
-
-#### loadedModules(): {"name": object}
-
-Returns an object of module name to module exports. Does not update if new
-modules are loaded.
-
-#### loadedModuleNames(): [string]
-
-Returns the list of currently loaded modules. Does not update if new modules
-are loaded.
+* hasModule(name: string): boolean
+* hasRole(name: string): boolean
+* isInitializable(module: Module): boolean
+* initialize(module: Module): void
