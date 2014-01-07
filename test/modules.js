@@ -166,4 +166,49 @@ describe('Module System', function () {
             }
         });
     });
+
+    describe('Has', function () {
+        it('for modules', function () {
+            system.initialize({
+                init: function () { return {}; },
+                name: 'module'
+            });
+
+            assert(system.hasModule('module'));
+        });
+
+        it('for roles', function () {
+            system.initialize({
+                init: function () { return {}; },
+                name: 'provides-role',
+                role: 'role'
+            });
+
+            assert(system.hasRole('role'));
+        });
+    });
+
+    describe('Exports Getters', function () {
+        it('for modules', function () {
+            system.initialize(examples['exports']);
+            assert(system.moduleExports('exports') === true);
+        });
+
+        it('for roles', function () {
+            const exports = {};
+
+            const roleWithExports = {
+                init: function () {
+                    return {
+                        exports: exports
+                    }
+                },
+                name: 'role-with-exports',
+                role: 'exports'
+            };
+
+            system.initialize(roleWithExports);
+            assert(system.roleExports('exports') === exports);
+        });
+    });
 });
