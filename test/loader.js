@@ -9,49 +9,49 @@ const resolvepath = require('path').resolve;
 const debug = false;
 const logfn = debug ? console.log.bind(console) : function () {};
 
-const ModuleLoader = require('../lib/loader.js');
-const ModuleSystem = require('../lib/modules.js');
+const PluginLoader = require('../lib/loader.js');
+const PluginSystem = require('../lib/plugins.js');
 const errors = require('../lib/errors.js');
 
 const root = require('path').resolve('/');
 
-describe('ModuleLoader', function () {
-    var loader, fs, require, modules;
+describe('PluginLoader', function () {
+    var loader, fs, require, plugins;
 
     beforeEach(function () {
         logfn(/* newline */);
 
-        // Tests will add paths here with values of Modules.
-        pathToModules = {};
+        // Tests will add paths here with values of Plugins.
+        pathToPlugins = {};
 
         fs = {
             existsSync: function (path) {
-                return pathToModules.hasOwnProperty(path);
+                return pathToPlugins.hasOwnProperty(path);
             }
         };
 
         require = function (path) {
             logfn(format('Requiring %s', path));
-            assert(pathToModules.hasOwnProperty(path) || pathToModules.hasOwnProperty(path + '.js'));
-            return pathToModules[resolvepath(path, './index.js')] || pathToModules[path + '.js'];
+            assert(pathToPlugins.hasOwnProperty(path) || pathToPlugins.hasOwnProperty(path + '.js'));
+            return pathToPlugins[resolvepath(path, './index.js')] || pathToPlugins[path + '.js'];
         };
 
-        loader = ModuleLoader(ModuleSystem(null), fs, require, 'test');
+        loader = PluginLoader(PluginSystem(null), fs, require, 'test');
     });
 
-    it('loads no modules when given no modules to load', function () {
+    it('loads no plugins when given no plugins to load', function () {
         loader.use([], root);
     });
 
-    it('loads a module when given a module to load', function () {
-        pathToModules['/test_modules/module.js'] = {
+    it('loads a plugin when given a plugin to load', function () {
+        pathToPlugins['/test_plugins/plugin.js'] = {
             init: function () { return {}; }
         };
 
-        loader.use(['module'], root);
+        loader.use(['plugin'], root);
     });
 
-    it('loads modules only when they are ready to be loaded', function (done) {
+    it('loads plugins only when they are ready to be loaded', function (done) {
         const first = {
             init: function () {
                 return {
@@ -73,22 +73,22 @@ describe('ModuleLoader', function () {
             requires: ['first']
         };
 
-        pathToModules['/test_modules/first.js'] = first;
-        pathToModules['/test_modules/second.js'] = second;
+        pathToPlugins['/test_plugins/first.js'] = first;
+        pathToPlugins['/test_plugins/second.js'] = second;
 
         loader.use(['second', 'first'], root);
     });
 
-    it('throws NoSuchModule for non-existent modules.', function () {
+    it('throws NoSuchPlugin for non-existent plugins.', function () {
         try {
             loader.use(['does-not-exist'], root);
         } catch (e) {
             assert(e instanceof Error);
-            assert(e instanceof errors.NoSuchModule);
+            assert(e instanceof errors.NoSuchPlugin);
         }
     });
 
-    it('throws UnmetDependency when module requires a module not loaded or in use array', function () {
+    it('throws UnmetDependency when plugin requires a plugin not loaded or in use array', function () {
         const requiresNonexistent = {
             init: function () {
                 assert(false);
@@ -106,7 +106,7 @@ describe('ModuleLoader', function () {
         }
     });
 
-    it('throws UnmetDependency when two modules require each other', function () {
+    it('throws UnmetDependency when two plugins require each other', function () {
         const first = {
             init: function () {
                 return {};
@@ -121,8 +121,8 @@ describe('ModuleLoader', function () {
             requires: ['first']
         };
 
-        pathToModules['/test_modules/first.js'] = first;
-        pathToModules['/test_modules/second.js'] = second;
+        pathToPlugins['/test_plugins/first.js'] = first;
+        pathToPlugins['/test_plugins/second.js'] = second;
 
         try {
             loader.use(['second', 'first'], root);

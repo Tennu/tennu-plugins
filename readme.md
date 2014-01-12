@@ -1,44 +1,46 @@
-This is the Modules subsystem of the Tennu IRC Framework for Node.
+This is the Plugins subsystem of the Tennu IRC Bot Framework for Node.
 
-This module creates a module systems that handles loading, dependencies, and roles.
+This module creates a plugin systems that handles loading, dependencies, and roles.
 
-The main features of this module system are:
+The main features of this plugin system are:
 
 * Loading of dependencies
-* Initialization of modules
-* Module roles, where modules of that role expose a common interface.
-* Module hooks, where modules can hook into each loading module.
+* Initialization of plugins
+* Plugin roles, where plugins of that role expose a common interface.
+* Plugin hooks, where plugins can hook into each initializing plugin.
 
 Multiple examples use [Tennu](https://github.com/Tennu/tennu), since this
-module system module was designed for it.
+plugin system plugin was designed for it. You can repurpose this system
+for your plugins.
 
 ## Installation
 
 ```
-npm install tennu-modules
+npm install tennu-plugins
 ```
 
-## Initialization of Module System
+## Initialization of Plugin System
 
 ```javascript
-require('tennu-modules')(systemname: string, context: any)
+require('tennu-plugins')(systemname: string, context: any)
 ```
 
-The name is the name of the module system, and declares the directory type it
-will look for modules in.
+The systemname is the name of the plugin system, 
+and declares the directory names the plugin loader's `use` method
+will look for plugins in. See PluginLoader#Use() for more.
 
-The context is the first argument passed the module initialization functions.
+The context is the first argument passed the plugin initialization functions.
 
-For Tennu, where the `client` is passed to each module, 
-and modules are stored in `tennu_modules`, the initialization is:
+For example, in Tennu, where the `client` is passed to each plugin, 
+and plugins are stored in `tennu_plugins`, the initialization is:
 
 ```javascript
-var modules = require('tennu-modules')('tennu', client, logger)
+var plugins = require('tennu-plugins')('tennu', client)
 ```
 
-## What's a Module?
+## What's a Plugin?
 
-A Module is an object with the following properties:
+A Plugin is an object with the following properties:
 
 ```javascript
 {
@@ -50,13 +52,13 @@ A Module is an object with the following properties:
 }
 ```
 
-The init function must return an object. This object is known as the module instance.
+The init function must return an object. This object is known as the plugin instance.
 
-**Note:** The name must exist for initialization. When using the use() method, the modules will
-have their name property rewritten. As such, you don't have to worry about the property
-if you only use `use()`.
+**Note:** The name must exist for initialization, but when using the use() method, 
+the plugins will have their name property rewritten. As such, you don't have to worry
+about the name property if you only use `use()`.
 
-The following is the minimally viable module:
+The following is the minimally viable plugin:
 
 ```javascript
 {
@@ -67,22 +69,22 @@ The following is the minimally viable module:
 }
 ```
 
-The module instance can export values for other modules to use. To do so, these
+The plugin instance can export values for other plugins to use. To do so, these
 values must be located on the exports property.
 
-The module instance can also hook into modules that require it. To do so, the properties
+The plugin instance can also hook into plugins that require it. To do so, the properties
 to hook onto must be defined on the hooks property.
 
 ## Exports Property
 
-The exports property is given to modules that depend on your module through
-the init function. For example, let's say we have two modules, A and B.
-Module B depends on Module A. Module A exports a property `exists: true`.
-Module B loads module A and then logs A's `exist` property to the console.
+The exports property is given to plugins that depend on your plugin through
+the init function. For example, let's say we have two plugins, A and B.
+Plugin B depends on Plugin A. Plugin A exports a property `exists: true`.
+Plugin B loads plugin A and then logs A's `exist` property to the console.
 
 ```javascript
 
-// Module A
+// Plugin A
 {
     init: function () {
         return {
@@ -92,7 +94,7 @@ Module B loads module A and then logs A's `exist` property to the console.
     name: 'A'
 }
 
-// Module B
+// Plugin B
 {
     init: function (context, imports) {
         console.log(imports['B'].exists);
@@ -107,18 +109,18 @@ Module B loads module A and then logs A's `exist` property to the console.
 
 ## Hooks Property
 
-Sometimes a module wants to do something with every module that uses it.
-For example, Tennu has a help module that hooks into the `'help'` property.
-So, let's say there's a time module that wants to use this hook.
+Sometimes a plugin wants to do something with every plugin that uses it.
+For example, Tennu has a help plugin that hooks into the `'help'` property.
+So, let's say there's a time plugin that wants to use this hook.
 
-The time module puts `'help'` in the dependencies list, and adds a `help`
-property to the module instance with the help message.
+The time plugin puts `'help'` in the dependencies list, and adds a `help`
+property to the plugin instance with the help message.
 
 This is what it looks like:
 
 ```javascript
 
-// Module 'help'
+// Plugin 'help'
 {
     init: function (client, imports) {
         // ... initialization code.
@@ -126,7 +128,7 @@ This is what it looks like:
         return {
             // ... other properties
             hooks: {
-                help: function (moduleName, helpobj) {
+                help: function (pluginName, helpobj) {
                     // Does stuff with helpobj
                 }
             }
@@ -135,7 +137,7 @@ This is what it looks like:
     name: 'help'
 }
 
-// Module 'time'
+// Plugin 'time'
 {
     init: function (client, imports) {
         // ... initialization code.
@@ -149,69 +151,69 @@ This is what it looks like:
 }
 ```
 
-Note: In this example, the module name and hook name are the same.
+Note: In this example, the plugin name and hook name are the same.
 This is not a requirement. You can name your hooks whatever you want.
 
 ## Global Hooks
 
-The creator of the module system can add hooks that apply to all modules.
+The creator of the plugin system can add hooks that apply to all plugins.
 
-Global hooks should be added before loading any modules.
+Global hooks should be added before loading any plugins.
 
 To do so, use `addHook(hook: String, fn: string -> any -> void)`.
 
 For example, Tennu adds a 'handlers' global hook.
 
 ```javascript
-var modules = require('tennu-modules')('tennu', client, logger);
-modules.addHook('handlers', function (module, handlers) {
+var plugins = require('tennu-plugins')('tennu', client, logger);
+plugins.addHook('handlers', function (plugin, handlers) {
    client.on(handlers); 
 });
 ```
 
-## Loading Modules
+## Loading Plugins
 
 ```javascript
-var modules = require('tennu-modules')('tennu', client, logger);
+var plugins = require('tennu-plugins')('tennu', client, logger);
 var builtins = ['server', 'actions', 'help', 'user', 'channel'];
-var toUse = [].concat(builtins, client.config(modules));
-modules.use(toUse);
+var toUse = [].concat(builtins, client.config(plugins));
+plugins.use(toUse);
 ```
 
-Create a list of modules that you want to use, and then pass them to
-modules.use(names: [String], path: String).
+Create a list of plugins that you want to use, and then pass them to
+plugins.use(names: [String], path: String).
 
-The module system will then [locate](#Locate%20Modules) and load the modules in a way
+The plugin system will then [locate](#Locate%20Plugins) and load the plugins in a way
 that all dependencies are properly met.
 
-This module can throw various errors. The constructors for these errors can be
-found on the exports object of this module.
+This plugin can throw various errors. The constructors for these errors can be
+found on the exports object of this plugin.
 
 * UnmetDependency
-* NoSuchModule
+* NoSuchPlugin
 * NoSuchRole (Not yet used)
 * CyclicicDependency (Not yet used)
-* ModuleInitializationError
+* PluginInitializationError
 * RegistryKeyAlreadySet
 * HookAlreadyExists
 
-## Locating Modules
+## Locating Plugins
 
-The second parameter to `use()` is a path. The module system will look for the following
-places for your module:
+The second parameter to `use()` is a path. The plugin system will look for the following
+places for your plugin:
 
-%path%/%systemname%_modules/%modulename%.js
-%path%/%systemname%_modules/%modulename%/index.js
-%path%/node_modules/%systemname%-%modulename%/
+%path%/%systemname%_plugins/%pluginname%.js
+%path%/%systemname%_plugins/%pluginname%/index.js
+%path%/node_plugins/%systemname%-%pluginname%/
 
-If it cannot find the module there, it will then go up the parent directory, and repeat,
-until it either finds the module or is at the root.
+If it cannot find the plugin there, it will then go up the parent directory, and repeat,
+until it either finds the plugin or is at the root.
 
-If the module cannot be found, a NoSuchModule error will be thrown.
+If the plugin cannot be found, a NoSuchPlugin error will be thrown.
 
 ## Other Functions
 
-* hasModule(name: string): boolean
+* hasPlugin(name: string): boolean
 * hasRole(name: string): boolean
-* isInitializable(module: Module): boolean
-* initialize(module: Module): void
+* isInitializable(plugin: Plugin): boolean
+* initialize(plugin: Plugin): void

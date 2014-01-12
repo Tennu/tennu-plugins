@@ -7,24 +7,24 @@ const format = require('util').format;
 const debug = false;
 const logfn = debug ? console.log.bind(console) : function () {};
 
-const ModuleSystem = require('../lib/modules.js');
+const PluginSystem = require('../lib/plugins.js');
 const errors = require('../lib/errors.js');
 
 const examples = require('../examples/index.js');
 
-describe('Module System', function () {
+describe('Plugin System', function () {
     var context, system;
 
     beforeEach(function () {
         logfn(/* newline */);
         context = {};
-        system = ModuleSystem(context);
+        system = PluginSystem(context);
     });
 
     describe('initialization', function () {
         it('of a bare module', function () {
             system.initialize(examples['bare']);
-            assert(system.hasModule('bare'));
+            assert(system.hasPlugin('bare'));
             assert(equal(system.loadedNames(), ['bare']));
         });
 
@@ -52,31 +52,31 @@ describe('Module System', function () {
                 system.initialize(examples['bare']);
                 assert(false);
             } catch (e) {
-                assert(e instanceof errors.ModuleInitializationError);
+                assert(e instanceof errors.PluginInitializationError);
                 assert(e instanceof Error);
                 assert(e.module = examples.bare);
             }
         });
 
-        it('can load modules with different names', function () {
+        it('can load plugins with different names', function () {
             system.initialize(examples['bare']);
             system.initialize(examples['bare-2']);
-            assert(system.hasModule('bare'));
-            assert(system.hasModule('bare-2'));
+            assert(system.hasPlugin('bare'));
+            assert(system.hasPlugin('bare-2'));
         });
 
         it('of a module with a role', function () {
             system.initialize(examples['bare-role-1']);
-            assert(system.hasModule('bare-role-1'));
+            assert(system.hasPlugin('bare-role-1'));
             assert(system.hasRole('bare'));
         });
 
-        it('cannot initialize multiple modules with the same role', function () {
+        it('cannot initialize multiple plugins with the same role', function () {
             system.initialize(examples['bare-role-1']);
             assert(!system.isInitializable(examples['bare-role-2']));
         });
 
-        it('with importing modules', function () {
+        it('with importing plugins', function () {
             const imports = {
                 init: function (context, imports) {
                     assert(imports.exports === true);
@@ -150,7 +150,7 @@ describe('Module System', function () {
             assert(spy.calledWith('test-hook', true));
         });
 
-        it('skips modules not using the hook', function () {
+        it('skips plugins not using the hook', function () {
             system.initialize(examples['bare']);
             assert(!spy.called);
         });
@@ -168,13 +168,13 @@ describe('Module System', function () {
     });
 
     describe('Has', function () {
-        it('for modules', function () {
+        it('for plugins', function () {
             system.initialize({
                 init: function () { return {}; },
                 name: 'module'
             });
 
-            assert(system.hasModule('module'));
+            assert(system.hasPlugin('module'));
         });
 
         it('for roles', function () {
@@ -189,9 +189,9 @@ describe('Module System', function () {
     });
 
     describe('Exports Getters', function () {
-        it('for modules', function () {
+        it('for plugins', function () {
             system.initialize(examples['exports']);
-            assert(system.moduleExports('exports') === true);
+            assert(system.pluginExportsOf('exports') === true);
         });
 
         it('for roles', function () {
@@ -208,7 +208,7 @@ describe('Module System', function () {
             };
 
             system.initialize(roleWithExports);
-            assert(system.roleExports('exports') === exports);
+            assert(system.roleExportsOf('exports') === exports);
         });
     });
 });

@@ -1,22 +1,23 @@
 {
-  "name": "tennu-modules",
-  "version": "2.1.0",
-  "description": "Tennu module subsystem.",
+  "name": "tennu-plugins",
+  "version": "3.0.0",
+  "description": "Tennu plugin subsystem",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha test -R spec"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/Tennu/tennu-modules.git"
+    "url": "git://github.com/Tennu/tennu-plugins.git"
   },
   "keywords": [
-    "tennu"
+    "tennu",
+    "plugins"
   ],
-  "author": "Havvy (Ryan S. Scheel)",
-  "license": "BSD",
+  "author": "Ryan S. Scheel (Havvy)",
+  "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Tennu/tennu-modules/issues"
+    "url": "https://github.com/Tennu/tennu-plugins/issues"
   },
   "devDependencies": {
     "mocha": "~1.16.2",
