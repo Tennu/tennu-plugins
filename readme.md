@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Tennu/tennu-plugins.png?branch=master)](https://travis-ci.org/Tennu/tennu-plugins)
+
 This is the Plugins subsystem of the Tennu IRC Bot Framework for Node.
 
 This module creates a plugin systems that handles loading, dependencies, and roles.
