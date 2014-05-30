@@ -204,9 +204,9 @@ found on the exports object of this plugin.
 The second parameter to `use()` is a path. The plugin system will look for the following
 places for your plugin:
 
-%path%/%systemname%_plugins/%pluginname%.js
-%path%/%systemname%_plugins/%pluginname%/index.js
-%path%/node_plugins/%systemname%-%pluginname%/
+* %**path**%/%**systemname**%_plugins/%**pluginname**%.js
+* %**path**%/%**systemname**%_plugins/%**pluginname**%/index.js
+* %**path**%/node_plugins/%**systemname**%-%**pluginname**%/
 
 If it cannot find the plugin there, it will then go up the parent directory, and repeat,
 until it either finds the plugin or is at the root.
