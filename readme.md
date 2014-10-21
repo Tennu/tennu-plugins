@@ -219,3 +219,8 @@ If the plugin cannot be found, a NoSuchPlugin error will be thrown.
 * hasRole(name: string): boolean
 * isInitializable(plugin: Plugin): boolean
 * initialize(plugin: Plugin): void
+* getPlugin(name: string): exports
+* getRole(name: string): exports
+* getModule(name: string): exports<sup>1</sup>
+
+<sup>1</sup> Alias for getPlugin. Erronously named, but kept for backwards compat. Use getPlugin instead.
