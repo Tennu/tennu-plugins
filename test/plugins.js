@@ -136,12 +136,12 @@ describe("Plugin System", function () {
         });
     });
 
-    describe("Global Hooks", function () {
+    describe("Initialization Hooks", function () {
         var spy;
 
         beforeEach(function () {
             spy = sinon.spy();
-            system.addHook("test", spy);
+            system.addInstanceHook("test", spy);
         });
 
         it("hooks into every loaded module", function () {
@@ -157,13 +157,45 @@ describe("Plugin System", function () {
 
         it("fails when adding the same hook twice", function () {
             try {
-                system.addHook("test", function () {});
+                system.addInstanceHook("test", function () {});
                 assert("false");
             } catch (e) {
                 assert(e instanceof errors.HookAlreadyExists);
                 assert(e instanceof errors.RegistryKeyAlreadySet);
                 assert(e instanceof Error);
             }
+        });
+    });
+
+    describe("Static Hooks", function () {
+        var spy, setinel;
+
+        beforeEach(function () {
+            spy = sinon.spy();
+            setinel = {};
+            system.addStaticHook("test", spy);
+        });
+
+        it("hooks into every loaded module", function () {
+            system.initialize({
+                test: setinel,
+                name: "TEST",
+                init: function () {
+                    assert(spy.calledOnce);
+                    assert(spy.calledWith("TEST", setinel));
+                    return {};
+                }
+            });
+        });
+
+        it("skips plugins not using the hook", function () {
+            system.initialize({
+                name: "TEST",
+                init: function () {
+                    assert(!spy.called);
+                    return {};
+                }
+            });
         });
     });
 
