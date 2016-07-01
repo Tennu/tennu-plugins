@@ -221,6 +221,38 @@ If the plugin cannot be found, a NoSuchPlugin error will be thrown.
 * initialize(plugin: Plugin): void
 * getPlugin(name: string): exports
 * getRole(name: string): exports
-* getModule(name: string): exports<sup>1</sup>
 
-<sup>1</sup> Alias for getPlugin. Erronously named, but kept for backwards compat. Use getPlugin instead.
+## Failure Handling
+
+Any function that has a failure condition returns a `Result` from [`r-result`](https://github.com/havvy/r-result).
+
+The failure type can be determined by checking the `failureType` property of the object.
+
+The failure also has a message property describing the issue.
+
+As follows are the failure types and their causes.
+
+### "instance-hook-already-set"
+
+Returned when trying to set an instance hook after calling the `init` function on the plugin, and the plugin system already has that hook registered to another plugin.
+
+You should consider the plugin system to be in an indeterminate state at this point, since the `init` function for a plugin was ran, but it was not fully initialized.
+
+The name of the hook is stored on the `hook` property.
+
+To solve this, figure out which plugin has the hook installed already, and change one of the plugins to use a different hook.
+
+Ideally no two plugins would ever share the same instance hook (without sharing the same role) though, since that makes them incompatible, both with each other, but also any plugin that depends on the other.
+
+### "cannot-initialize"
+
+Returned when trying to initialize a plugin, but after looking at it's factory object, it was determined not
+to be possible.
+
+### "static-hook-already-set"
+
+Same as `"instance-hook-already-set"`, but for static hooks.
+
+### "role-already-set"
+
+Returned when 

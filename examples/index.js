@@ -1,8 +1,15 @@
 module.exports = {
-    'bare': require('./bare.js'),
-    'bare-2': require('./bare-2.js'),
-    'test-hook': require('./test-hook.js'),
-    'bare-role-1': require('./bare-role-1.js'),
-    'bare-role-2': require('./bare-role-2.js'),
-    'exports': require('./exports.js')
+    // Bare Plugins
+    "bare": require("./bare"),
+    "bare-alt-name": require("./bare-alt-name"),
+
+    // Dancer Role Plugins
+    "waltz": require("./waltz"),
+    "tango": require("./tango"),
+
+    // Hooks
+    "has-test-hook": require("./has-test-hook"),
+
+    // Exports
+    "exports-true": require("./exports-true")
 };

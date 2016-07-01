@@ -1,21 +1,21 @@
-const sinon = require('sinon');
-const assert = require('better-assert');
-const equal = require('deep-eql');
-const inspect = require('util').inspect;
-const format = require('util').format;
+const sinon = require("sinon");
+const assert = require("better-assert");
+const equal = require("deep-eql");
+const inspect = require("util").inspect;
+const format = require("util").format;
 
-const resolvepath = require('path').resolve;
+const resolvepath = require("path").resolve;
 
 const debug = false;
 const logfn = debug ? console.log.bind(console) : function () {};
 
-const PluginLoader = require('../lib/loader.js');
-const PluginSystem = require('../lib/plugins.js');
-const errors = require('../lib/errors.js');
+const PluginLoader = require("../lib/loader.js");
+const PluginSystem = require("../lib/plugins.js");
+const failures = require("../lib/failures.js");
 
-const root = require('path').resolve('/');
+const root = require("path").resolve("/");
 
-describe('PluginLoader', function () {
+describe("PluginLoader", function () {
     var loader, fs, require, plugins;
 
     beforeEach(function () {
@@ -31,115 +31,127 @@ describe('PluginLoader', function () {
         };
 
         require = function (path) {
-            logfn(format('Requiring %s', path));
-            assert(pathToPlugins.hasOwnProperty(path) || pathToPlugins.hasOwnProperty(path + '.js'));
-            return pathToPlugins[resolvepath(path, './index.js')] || pathToPlugins[path + '.js'];
+            logfn(format("Requiring %s", path));
+            assert(pathToPlugins.hasOwnProperty(path) || pathToPlugins.hasOwnProperty(path + ".js"));
+            return pathToPlugins[resolvepath(path, "./index.js")] || pathToPlugins[path + ".js"];
         };
 
-        loader = PluginLoader(PluginSystem(null), fs, require, 'test');
+        loader = PluginLoader(PluginSystem(null), fs, require, "test");
     });
 
-    it('loads no plugins when given no plugins to load', function () {
+    it("loads no plugins when given no plugins to load", function () {
         loader.use([], root);
     });
 
-    it('loads a plugin when given a plugin to load', function () {
-        pathToPlugins['/test_plugins/plugin.js'] = {
+    it("loads a plugin when given a plugin to load", function () {
+        pathToPlugins["/test_plugins/plugin.js"] = {
             init: function () { return {}; }
         };
 
-        loader.use(['plugin'], root);
+        loader.use(["plugin"], root);
     });
 
-    it('loads plugins only when they are ready to be loaded', function (done) {
+    it("loads plugins only when they are ready to be loaded", function (done) {
+        var callOrder = 1;
+
         const first = {
+            name: "first",
+
             init: function () {
-                return {
-                    hooks: {
-                        test: function (name, value) {
-                            done();
-                        }
-                    }
-                };
+                assert(callOrder === 1);
+                callOrder += 1;
+
+                return {};
             }
         };
 
         const second = {
+            name: "second",
+            requires: ["first"],
+
             init: function () {
-                return {
-                    test: true
-                };
-            },
-            requires: ['first']
+                assert(callOrder === 2);
+                done();
+                return {};
+            }
         };
 
-        pathToPlugins['/test_plugins/first.js'] = first;
-        pathToPlugins['/test_plugins/second.js'] = second;
+        pathToPlugins["/test_plugins/first.js"] = first;
+        pathToPlugins["/test_plugins/second.js"] = second;
 
-        loader.use(['second', 'first'], root);
+        const res = loader.use(["second", "first"], root);
     });
 
-    it('throws NoSuchPlugin for non-existent plugins.', function () {
-        try {
-            loader.use(['does-not-exist'], root);
-        } catch (e) {
-            assert(e instanceof Error);
-            assert(e instanceof errors.NoSuchPlugin);
-        }
+    it("Failure: NoSuchPlugin for non-existent plugins.", function () {
+        const result = loader.use(["does-not-exist"], root);
+
+        assert(result.isFail());
+        const fail = result.fail();
+
+        assert(equal(fail, {
+            failureReason: failures.NoSuchPlugin,
+            message: "Failed to locate plugin 'does-not-exist'",
+            name: "does-not-exist",
+            paths: ["/"]
+        }));
     });
 
-    it('throws UnmetDependency when plugin requires a plugin not loaded or in use array', function () {
+    it("Failure: UnmetDependency when plugin requires a plugin not loaded or in use array", function () {
         const requiresNonexistent = {
+            name: "requires-nonexistent",
+            requires: ["does-not-exist"],
             init: function () {
                 assert(false);
                 return {};
             }
         }
 
-        try {
-            loader.use(['requires-nonexistent'], root);
-            assert(false);
-        } catch (e) {
-            if (e.name === 'AssertionError') throw e;
-            assert(e instanceof Error);
-            assert(e instanceof errors.UnmetDependency);
-        }
+        pathToPlugins["/test_plugins/requires-nonexistent.js"] = requiresNonexistent;
+
+        const result = loader.use(["requires-nonexistent"], root);
+        assert(result.isFail());
+        const fail = result.fail();
+
+        assert(equal(fail, {
+            failureReason: failures.UnmetDependency,
+            message: "Reason unknown (unimplemented)"
+        }));
     });
 
-    it('throws UnmetDependency when two plugins require each other', function () {
+    it("Failure: UnmetDependency when two plugins require each other", function () {
         const first = {
             init: function () {
                 return {};
             },
-            requires: ['second']
+            requires: ["second"]
         };
 
         const second = {
             init: function () {
                 return {};
             },
-            requires: ['first']
+            requires: ["first"]
         };
 
-        pathToPlugins['/test_plugins/first.js'] = first;
-        pathToPlugins['/test_plugins/second.js'] = second;
+        pathToPlugins["/test_plugins/first.js"] = first;
+        pathToPlugins["/test_plugins/second.js"] = second;
 
-        try {
-            loader.use(['second', 'first'], root);
-            assert(false);
-        } catch (e) {
-            if (e.name === 'AssertionError') throw e;
-            assert(e instanceof errors.UnmetDependency);
-            assert(e instanceof Error);
-        }
+        const result = loader.use(["second", "first"], root);
+        assert(result.isFail());
+        const fail = result.fail();
+
+        assert(equal(fail, {
+            failureReason: failures.UnmetDependency,
+            message: "Reason unknown (unimplemented)"
+        }));
     });
 
-    it('throws TypeError if path is not a string.', function () {
+    it("Error: TypeError if path is not a string.", function () {
         try {
             loader.use([], undefined);
             assert(false);
         } catch (e) {
-            if (e.name === 'AssertionError') throw e;
+            if (e.name === "AssertionError") throw e;
             assert(e instanceof TypeError);
         }
     });

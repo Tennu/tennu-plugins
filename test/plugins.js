@@ -8,7 +8,7 @@ const debug = false;
 const logfn = debug ? console.log.bind(console) : function () {};
 
 const PluginSystem = require("../lib/plugins.js");
-const errors = require("../lib/errors.js");
+const failures = require("../lib/failures.js");
 
 const examples = require("../examples/index.js");
 
@@ -21,15 +21,23 @@ describe("Plugin System", function () {
         system = PluginSystem(context);
     });
 
-    describe("initialization", function () {
-        it("of a bare module", function () {
-            system.initialize(examples["bare"]);
+    describe("Initialization", function () {
+        it("of a bare plugin", function () {
+            const initializationResult = system.initialize(examples["bare"]);
+            assert(initializationResult.isOk());
             assert(system.hasPlugin("bare"));
             assert(equal(system.loadedNames(), ["bare"]));
         });
 
-        it("gets a reference to the context", function () {
-            const module = {
+        it("of multiple bare plugins", function () {
+            system.initialize(examples["bare"]);
+            system.initialize(examples["bare-alt-name"]);
+            assert(system.hasPlugin("bare"));
+            assert(system.hasPlugin("bare-alt-name"));
+        });
+
+        it("function gets a reference to the context", function () {
+            const plugin = {
                 init: function (_context) {
                     assert(context === _context);
                     return {};
@@ -37,133 +45,172 @@ describe("Plugin System", function () {
                 name: "context-test"
             };
 
-            system.initialize(module);
+            const result = system.initialize(plugin);
+            assert(result.isOk());
         });
 
-        it("cannot initialize the same module name twice", function () {
-            system.initialize(examples["bare"]);
-            assert(!system.isInitializable(examples["bare"]));
+        it("of a plugin with a role", function () {
+            const result = system.initialize(examples["waltz"]);
+            assert(result.isOk());
+            assert(system.hasPlugin("waltz"));
+            assert(system.hasRole("dancer"));
         });
 
-        it("will fail with same module name twice", function () {
-            system.initialize(examples["bare"]);
-
-            try {
-                system.initialize(examples["bare"]);
-                assert(false);
-            } catch (e) {
-                assert(e instanceof errors.PluginInitializationError);
-                assert(e instanceof Error);
-                assert(e.module = examples.bare);
-            }
-        });
-
-        it("can load plugins with different names", function () {
-            system.initialize(examples["bare"]);
-            system.initialize(examples["bare-2"]);
-            assert(system.hasPlugin("bare"));
-            assert(system.hasPlugin("bare-2"));
-        });
-
-        it("of a module with a role", function () {
-            system.initialize(examples["bare-role-1"]);
-            assert(system.hasPlugin("bare-role-1"));
-            assert(system.hasRole("bare"));
-        });
-
-        it("cannot initialize multiple plugins with the same role", function () {
-            system.initialize(examples["bare-role-1"]);
-            assert(!system.isInitializable(examples["bare-role-2"]));
-        });
-
-        it("with importing plugins", function () {
+        it("that requires a separate plugin", function () {
             const imports = {
+                name: "requires-exports-true",
+                requires: ["exports-true"],
+
                 init: function (context, imports) {
-                    assert(imports.exports === true);
+                    assert(imports["exports-true"] === true);
                     return {};
                 },
-                name: "imports-test",
-                requires: ["exports"]
             };
 
-            system.initialize(examples["exports"]);
-            system.initialize(imports);
+            const exportsResult = system.initialize(examples["exports-true"]);
+            assert(exportsResult.isOk());
+            const importsResult = system.initialize(imports);
+
+            if (importsResult.isFail()) {
+                logfn(inspect(importsResult.fail()));
+            }
+
+            assert(importsResult.isOk());
         });
 
-        it("with hooks", function (done) {
-            const hooks = {
+        it("of a plugin with custom hooks", function (done) {
+            const addsTestHook = {
+                name: "adds-test-hook",
+
                 init: function () {
                     return {
                         hooks: {
                             "test": function (name, value) {
-                                assert(name === "test-hook");
+                                assert(name === "has-test-hook");
                                 assert(value === true);
                                 done();
                             }
                         }
                     }
                 },
-                name: "hooks"
             };
 
-            system.initialize(hooks);
-            system.initialize(examples["test-hook"]);
+            system.initialize(addsTestHook);
+            system.initialize(examples["has-test-hook"]);
         });
 
-        it("with importing roles", function (done) {
+        it("that requires a separate plugin of a specific role", function (done) {
             const role = {
+                name: "has-role",
+                role: "role",
+
                 init: function () {
                     return {
                         exports: true
-                    }
-                },
-                name: "role",
-                role: "role"
+                    };
+                }
             };
 
             const usesRole = {
+                name: "uses-role",
+                requiresRoles: ["role"],
+
                 init: function (_context, imports) {
                     assert(imports.role === true);
                     done();
                     return {};
-                },
-                name: "uses-role",
-                requiresRoles: ["role"]
+                }
             };
 
-            system.initialize(role);
-            system.initialize(usesRole);
+            const roleResult = system.initialize(role);
+            assert(roleResult.isOk());
+            const usesRoleResult = system.initialize(usesRole);
+            if (usesRoleResult.isFail()) {
+                logfn(inspect(usesRoleResult));
+            }
+            assert(usesRoleResult.isOk());
+        });
+
+        describe("Failure: Initialization of two plugins with the same name", function () {
+            beforeEach(function () {
+                const result = system.initialize(examples["bare"]);
+                assert(result.isOk());
+            });
+
+            const initializationValidationExpected = {
+                canInitialize: false,
+                reason: "A plugin with this plugin's name has already been installed."
+            };
+
+            it("via isInitializable()", function () {
+                const validation = system.isInitializable(examples["bare"]);
+
+                assert(equal(validation, initializationValidationExpected));
+            });
+
+            it("via initialize()", function () {
+                const result = system.initialize(examples["bare"]);
+                assert(result.isFail());
+                const validationFailure = result.fail();
+                assert(equal(validationFailure, {
+                    failureReason: failures.CannotInitialize,
+                    message: "The plugin cannot be initialized. For why, check the validationFailure.",
+                    validationFailure: initializationValidationExpected,
+                    plugin: examples["bare"]
+                }));
+            });
+        });
+
+        describe("Failure: Initialization of two plugins with the same role", function () {
+            beforeEach(function () {
+                const result = system.initialize(examples["waltz"]);
+                assert(result.isOk());
+            });
+
+            const initializationValidationExpected = {
+                canInitialize: false,
+                reason: "A plugin with this plugin's role's name has already been installed."
+            };
+
+            it("via isInitializable", function () {
+                const validation = system.isInitializable(examples["tango"]);
+
+                assert(equal(validation, initializationValidationExpected));
+            });
         });
     });
 
-    describe("Initialization Hooks", function () {
+    describe("Instance Hooks", function () {
         var spy;
 
         beforeEach(function () {
             spy = sinon.spy();
-            system.addInstanceHook("test", spy);
+            const result = system.addInstanceHook("test", spy);
+            assert(result.isOk());
         });
 
         it("hooks into every loaded module", function () {
-            system.initialize(examples["test-hook"]);
+            const result = system.initialize(examples["has-test-hook"]);
+            assert(result.isOk());
             assert(spy.calledOnce);
-            assert(spy.calledWith("test-hook", true));
+            assert(spy.calledWith("has-test-hook", true));
         });
 
         it("skips plugins not using the hook", function () {
-            system.initialize(examples["bare"]);
+            const result = system.initialize(examples["bare"]);
+            assert(result.isOk());
             assert(!spy.called);
         });
 
-        it("fails when adding the same hook twice", function () {
-            try {
-                system.addInstanceHook("test", function () {});
-                assert("false");
-            } catch (e) {
-                assert(e instanceof errors.HookAlreadyExists);
-                assert(e instanceof errors.RegistryKeyAlreadySet);
-                assert(e instanceof Error);
-            }
+        it("Failure: Adding the same hook twice", function () {
+            const result = system.addInstanceHook("test", function () {});
+            assert(result.isFail());
+            const fail = result.fail();
+            assert(equal(fail, {
+                failureReason: failures.InstanceHookAlreadyExists,
+                message: "Tried to set instance hook 'test', but a plugin already has that instance hook.",
+                hook: "test"
+            }));
         });
     });
 
@@ -202,8 +249,8 @@ describe("Plugin System", function () {
     describe("Has", function () {
         it("for plugins", function () {
             system.initialize({
+                name: "module",
                 init: function () { return {}; },
-                name: "module"
             });
 
             assert(system.hasPlugin("module"));
@@ -222,8 +269,12 @@ describe("Plugin System", function () {
 
     describe("Exports Getters", function () {
         it("for plugins", function () {
-            system.initialize(examples["exports"]);
-            assert(system.pluginExportsOf("exports") === true);
+            const result = system.initialize(examples["exports-true"]);
+            if (result.isFail()) {
+                logfn(inspect(result.fail()));
+            }
+            assert(result.isOk());
+            assert(system.pluginExportsOf("exports-true") === true);
         });
 
         it("for roles", function () {
