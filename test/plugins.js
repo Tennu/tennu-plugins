@@ -22,7 +22,11 @@ describe("Plugin System", function () {
     });
 
     describe("Initialization", function () {
-        it("of a bare plugin", function () {
+        describe.skip("Failure: PluginFactory is not an object", function () {});
+        // May end up making this one part of the previous when implemented.
+        describe.skip("Failure: PluginFactory is null", function () {});
+
+        it("of a single bare plugin", function () {
             const initializationResult = system.initialize(examples["bare"]);
             assert(initializationResult.isOk());
             assert(system.hasPlugin("bare"));
@@ -34,6 +38,93 @@ describe("Plugin System", function () {
             system.initialize(examples["bare-alt-name"]);
             assert(system.hasPlugin("bare"));
             assert(system.hasPlugin("bare-alt-name"));
+        });
+
+        describe("of plugins with dependencies;", function () {
+            describe.skip("Failure: PluginFactory requires property not an array", function () {});
+
+            it("Plugin's single required plugin is loaded", function () {
+                const imports = {
+                    name: "requires-exports-true",
+                    requires: ["exports-true"],
+
+                    init: function (context, imports) {
+                        assert(imports["exports-true"] === true);
+                        return {};
+                    },
+                };
+
+                const exportsResult = system.initialize(examples["exports-true"]);
+                assert(exportsResult.isOk());
+                const importsResult = system.initialize(imports);
+
+                if (importsResult.isFail()) {
+                    logfn(inspect(importsResult.fail()));
+                }
+
+                assert(importsResult.isOk());
+            });
+
+            it.skip("isInitializableWith/2 Plugin's single required plugin is assumed loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's single required plugin is not loaded. No other plugins loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's single required plugin is not loaded. Other plugins loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's single required plugin is not loaded. No other plugins loaded or assumed loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's single required plugin is not loaded. No other plugins loaded. Other plugins assumed loaded", function () {});
+            it.skip("isInitializable/1 Plugin's multiple required plugins are loaded", function () {});
+            it.skip("isInitializableWith/2 Plugin's multiple required plugins are all assumed loaded", function () {});
+            it.skip("isInitializableWith/2 Plugin's multiple required plugins are all either loaded or assumed loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's multiple required plugins where none are loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's multiple required plugins where some are loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's multiple required plugins where none are loaded or assumed loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's multiple required plugins where some are assumed loaded", function () {});
+        });
+
+
+        describe("of plugins with role dependencies;", function () {
+            it("that requires a single plugin of a specific role", function (done) {
+                const role = {
+                    name: "has-role",
+                    role: "role",
+
+                    init: function () {
+                        return {
+                            exports: true
+                        };
+                    }
+                };
+
+                const usesRole = {
+                    name: "uses-role",
+                    requiresRoles: ["role"],
+
+                    init: function (_context, imports) {
+                        assert(imports.role === true);
+                        done();
+                        return {};
+                    }
+                };
+
+                const roleResult = system.initialize(role);
+                assert(roleResult.isOk());
+                const usesRoleResult = system.initialize(usesRole);
+                if (usesRoleResult.isFail()) {
+                    logfn(inspect(usesRoleResult));
+                }
+                assert(usesRoleResult.isOk());
+            });
+
+            it.skip("isInitializableWith/2 Plugin's single required role is assumed loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's single required role is not loaded. No other plugins loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's single required role is not loaded. Other plugins loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's single required role is not loaded. No other plugins loaded or assumed loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's single required role is not loaded. No other plugins loaded. Other plugins assumed loaded", function () {});
+            it.skip("isInitializable/1 Plugin's multiple required roles are loaded", function () {});
+            it.skip("isInitializableWith/2 Plugin's multiple required roles are all assumed loaded", function () {});
+            it.skip("isInitializableWith/2 Plugin's multiple required roles are all either loaded or assumed loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's multiple required roles where none are loaded", function () {});
+            it.skip("Failure: isInitializable/1 Plugin's multiple required roles where some are loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's multiple required roles where none are loaded or assumed loaded", function () {});
+            it.skip("Failure: isInitializableWith/2 Plugin's multiple required roles where some are assumed loaded", function () {});
         });
 
         it("function gets a reference to the context", function () {
@@ -59,28 +150,6 @@ describe("Plugin System", function () {
             assert(system.hasRole("dancer"));
         });
 
-        it("that requires a separate plugin", function () {
-            const imports = {
-                name: "requires-exports-true",
-                requires: ["exports-true"],
-
-                init: function (context, imports) {
-                    assert(imports["exports-true"] === true);
-                    return {};
-                },
-            };
-
-            const exportsResult = system.initialize(examples["exports-true"]);
-            assert(exportsResult.isOk());
-            const importsResult = system.initialize(imports);
-
-            if (importsResult.isFail()) {
-                logfn(inspect(importsResult.fail()));
-            }
-
-            assert(importsResult.isOk());
-        });
-
         it("of a plugin with custom hooks", function (done) {
             const addsTestHook = {
                 name: "adds-test-hook",
@@ -100,38 +169,6 @@ describe("Plugin System", function () {
 
             system.initialize(addsTestHook);
             system.initialize(examples["has-test-hook"]);
-        });
-
-        it("that requires a separate plugin of a specific role", function (done) {
-            const role = {
-                name: "has-role",
-                role: "role",
-
-                init: function () {
-                    return {
-                        exports: true
-                    };
-                }
-            };
-
-            const usesRole = {
-                name: "uses-role",
-                requiresRoles: ["role"],
-
-                init: function (_context, imports) {
-                    assert(imports.role === true);
-                    done();
-                    return {};
-                }
-            };
-
-            const roleResult = system.initialize(role);
-            assert(roleResult.isOk());
-            const usesRoleResult = system.initialize(usesRole);
-            if (usesRoleResult.isFail()) {
-                logfn(inspect(usesRoleResult));
-            }
-            assert(usesRoleResult.isOk());
         });
 
         describe("Failure: Initialization of two plugins with the same name", function () {
@@ -183,6 +220,11 @@ describe("Plugin System", function () {
                 assert(equal(validation, initializationValidationExpected));
             });
         });
+
+        describe.skip("Failure: isInitializable/1 Plugin's name property is not a string", function () {});
+        describe.skip("Failure: isInitializable/1 Plugin's name collides with an already loaded plugin", function () {});
+        describe.skip("Failure: isInitializableWith/2 Plugin's name collides with already assumed plugin's name", function () {});
+
     });
 
     describe("Instance Hooks", function () {
@@ -207,7 +249,7 @@ describe("Plugin System", function () {
             assert(!spy.called);
         });
 
-        it("Failure: Adding the same hook twice", function () {
+        it("Failure: Adding the same hook name twice", function () {
             const result = system.addInstanceHook("test", function () {});
             assert(result.isFail());
             const fail = result.fail();
@@ -217,6 +259,13 @@ describe("Plugin System", function () {
                 hook: "test"
             }));
         });
+
+        it.skip("can have a symbol for the hook name", function () {});
+
+        it.skip("having multiple hooks", function () {});
+
+        it.skip("Error: Hook name not string or symbol", function () {});
+        it.skip("Error: Hook function not a function.", function () {});
     });
 
     describe("Static Hooks", function () {
@@ -249,6 +298,15 @@ describe("Plugin System", function () {
                 }
             });
         });
+
+        it.skip("Failure: Adding the same hook name twice", function () {});
+
+        it.skip("can have a symbol for the hook name", function () {});
+
+        it.skip("having multiple hooks", function () {});
+
+        it.skip("Error: Hook name not string or symbol", function () {});
+        it.skip("Error: Hook function not a function.", function () {});
     });
 
     describe("Has", function () {
