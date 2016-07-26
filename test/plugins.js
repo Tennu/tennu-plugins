@@ -4,7 +4,7 @@ const equal = require("deep-eql");
 const inspect = require("util").inspect;
 const format = require("util").format;
 
-const debug = false;
+const debug = Boolean(false || process.env.VERBOSE);
 const logfn = debug ? console.log.bind(console) : function () {};
 
 const PluginSystem = require("../lib/plugins.js");
@@ -51,6 +51,9 @@ describe("Plugin System", function () {
 
         it("of a plugin with a role", function () {
             const result = system.initialize(examples["waltz"]);
+            if (result.isFail()) {
+                logfn(inspect(result.fail()));
+            }
             assert(result.isOk());
             assert(system.hasPlugin("waltz"));
             assert(system.hasRole("dancer"));
