@@ -142,6 +142,7 @@ describe("Plugin System", function () {
 
             const initializationValidationExpected = {
                 canInitialize: false,
+                failureReason: failures.validation.PluginAlreadyExists,
                 reason: "A plugin with this plugin's name has already been installed."
             };
 
@@ -172,6 +173,7 @@ describe("Plugin System", function () {
 
             const initializationValidationExpected = {
                 canInitialize: false,
+                failureReason: failures.validation.RoleAlreadyExists,
                 reason: "A plugin with this plugin's role's name has already been installed."
             };
 
