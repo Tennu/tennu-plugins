@@ -193,11 +193,12 @@ describe("Plugin System", function () {
                 const result = system.initialize(examples["bare"]);
                 assert(result.isFail());
                 const validationFailure = result.fail();
+                logfn(validationFailure);
                 assert(equal(validationFailure, {
                     failureReason: failures.CannotInitialize,
                     message: "The plugin cannot be initialized. For why, check the validationFailure.",
                     validationFailure: initializationValidationExpected,
-                    plugin: examples["bare"]
+                    pluginFactory: examples["bare"]
                 }));
             });
         });

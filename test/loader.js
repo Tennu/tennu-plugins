@@ -1,3 +1,5 @@
+"use strict";
+
 const sinon = require("sinon");
 const assert = require("better-assert");
 const equal = require("deep-eql");
@@ -6,7 +8,7 @@ const format = require("util").format;
 
 const resolvepath = require("path").resolve;
 
-const debug = false;
+const debug = Boolean(false || process.env.VERBOSE);
 const logfn = debug ? console.log.bind(console) : function () {};
 
 const PluginLoader = require("../lib/loader.js");
@@ -16,7 +18,7 @@ const failures = require("../lib/failures.js");
 const root = require("path").resolve("/");
 
 describe("PluginLoader", function () {
-    var loader, fs, require, plugins;
+    let loader, fs, require, system, pathToPlugins;
 
     beforeEach(function () {
         logfn(/* newline */);
@@ -36,23 +38,28 @@ describe("PluginLoader", function () {
             return pathToPlugins[resolvepath(path, "./index.js")] || pathToPlugins[path + ".js"];
         };
 
-        loader = PluginLoader(PluginSystem(null), fs, require, "test");
+        system = PluginSystem(null);
+        loader = PluginLoader(system, fs, require, "test");
     });
 
     it("loads no plugins when given no plugins to load", function () {
-        loader.use([], root);
+        const result = loader.use([], root);
+        assert(result.isOk());
     });
 
     it("loads a plugin when given a plugin to load", function () {
         pathToPlugins["/test_plugins/plugin.js"] = {
+            name: "plugin",
             init: function () { return {}; }
         };
 
-        loader.use(["plugin"], root);
+        const result = loader.use(["plugin"], root);
+
+        assert(result.isOk());
     });
 
     it("loads plugins only when they are ready to be loaded", function (done) {
-        var callOrder = 1;
+        let callOrder = 1;
 
         const first = {
             name: "first",
@@ -80,6 +87,7 @@ describe("PluginLoader", function () {
         pathToPlugins["/test_plugins/second.js"] = second;
 
         const res = loader.use(["second", "first"], root);
+        assert(res.isOk());
     });
 
     it("Failure: NoSuchPlugin for non-existent plugins.", function () {
@@ -88,6 +96,7 @@ describe("PluginLoader", function () {
         assert(result.isFail());
         const fail = result.fail();
 
+        logfn(inspect(fail));
         assert(equal(fail, {
             failureReason: failures.NoSuchPlugin,
             message: "Failed to locate plugin 'does-not-exist'",
@@ -112,13 +121,16 @@ describe("PluginLoader", function () {
         assert(result.isFail());
         const fail = result.fail();
 
+        logfn(inspect(fail));
         assert(equal(fail, {
-            failureReason: failures.UnmetDependency,
-            message: "Reason unknown (unimplemented)"
+            failureType: failures.UnmetDependency,
+            message: "Plugin with name of 'does-not-exist' required but neither initialized nor in to be initialized list.",
+            dependencyType: "name",
+            dependencyName: "does-not-exist"
         }));
     });
 
-    it("Failure: UnmetDependency when two plugins require each other", function () {
+    it("Failure: Cyclic Dependency when two plugins require each other", function () {
         const first = {
             init: function () {
                 return {};
@@ -136,13 +148,15 @@ describe("PluginLoader", function () {
         pathToPlugins["/test_plugins/first.js"] = first;
         pathToPlugins["/test_plugins/second.js"] = second;
 
-        const result = loader.use(["second", "first"], root);
+        const result = loader.use(["first", "second"], root);
         assert(result.isFail());
         const fail = result.fail();
 
+        logfn(fail);
         assert(equal(fail, {
-            failureReason: failures.UnmetDependency,
-            message: "Reason unknown (unimplemented)"
+            failureType: failures.CyclicicDependency,
+            message: "Two or more plugins depend on each other cyclicicly.",
+            dependencies: [first, second]
         }));
     });
 

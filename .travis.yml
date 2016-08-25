@@ -3,7 +3,5 @@ language: node_js
 node_js:
   - "stable"
   - "4.2"
-before_install: 
-    - 'if [ "${TRAVIS_NODE_VERSION}" == "0.10" ]; then npm install -g npm@2 ; fi'
 notifications:
   irc: "irc.mibbit.net#heartless"
