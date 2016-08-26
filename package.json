@@ -1,6 +1,6 @@
 {
   "name": "tennu-plugins",
-  "version": "4.0.0",
+  "version": "4.0.0-b1",
   "description": "Tennu plugin subsystem",
   "main": "lib/index.js",
   "scripts": {
