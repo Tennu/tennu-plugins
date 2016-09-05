@@ -87,6 +87,7 @@ describe("PluginLoader", function () {
         pathToPlugins["/test_plugins/second.js"] = second;
 
         const res = loader.use(["second", "first"], root);
+        res.mapFail((fail) => logfn(inspect(fail)));
         assert(res.isOk());
     });
 
