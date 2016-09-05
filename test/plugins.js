@@ -58,9 +58,7 @@ describe("Plugin System", function () {
                 assert(exportsResult.isOk());
                 const importsResult = system.initialize(imports);
 
-                if (importsResult.isFail()) {
-                    logfn(inspect(importsResult.fail()));
-                }
+                importsResult.mapFail((fail) => logfn(inspect()));
 
                 assert(importsResult.isOk());
             });
@@ -107,9 +105,7 @@ describe("Plugin System", function () {
                 const roleResult = system.initialize(role);
                 assert(roleResult.isOk());
                 const usesRoleResult = system.initialize(usesRole);
-                if (usesRoleResult.isFail()) {
-                    logfn(inspect(usesRoleResult));
-                }
+                usesRoleResult.mapFail((fail) => logfn(inspect(fail)));
                 assert(usesRoleResult.isOk());
             });
 
@@ -171,7 +167,7 @@ describe("Plugin System", function () {
             system.initialize(examples["has-test-hook"]);
         });
 
-        describe("Failure: Initialization of two plugins with the same name", function () {
+        describe("Failure: [PluginAlreadyExists] Initialization of two plugins with the same name", function () {
             beforeEach(function () {
                 const result = system.initialize(examples["bare"]);
                 assert(result.isOk());
@@ -205,7 +201,7 @@ describe("Plugin System", function () {
             });
         });
 
-        describe("Failure: Initialization of two plugins with the same role", function () {
+        describe("Failure: [RoleAlreadyExists] Initialization of two plugins with the same role", function () {
             beforeEach(function () {
                 const result = system.initialize(examples["waltz"]);
                 assert(result.isOk());
@@ -341,10 +337,12 @@ describe("Plugin System", function () {
                 logfn(inspect(result.fail()));
             }
             assert(result.isOk());
-            assert(system.pluginExportsOf("exports-true") === true);
+            assert(system.pluginExportsOf("exports-true").ok() === true);
         });
 
-        it.skip("Failure: NoSuchPlugin for non-existent plugin");
+        it("Failure: PluginNotInstalled for non-existent plugin", function () {
+            assert(system.pluginExportsOf("dne").isFail());
+        });
 
         it("for roles", function () {
             const exports = {};
@@ -360,9 +358,11 @@ describe("Plugin System", function () {
             };
 
             system.initialize(roleWithExports);
-            assert(system.roleExportsOf("exports") === exports);
+            assert(system.roleExportsOf("exports").ok() === exports);
         });
 
-        it.skip("Failure: NoSuchRole for non-existent role");
+        it("Failure: RoleNotInstalled for non-existent role", function () {
+            assert(system.roleExportsOf("dne").isFail());
+        });
     });
 });
