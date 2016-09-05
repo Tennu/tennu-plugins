@@ -180,7 +180,8 @@ describe("Plugin System", function () {
             const initializationValidationExpected = {
                 canInitialize: false,
                 failureReason: failures.validation.PluginAlreadyExists,
-                reason: "A plugin with this plugin's name has already been installed."
+                reason: "A plugin with the name 'bare' has already been installed.",
+                pluginFactory: examples["bare"]
             };
 
             it("via isInitializable()", function () {
@@ -198,6 +199,7 @@ describe("Plugin System", function () {
                     failureReason: failures.CannotInitialize,
                     message: "The plugin cannot be initialized. For why, check the validationFailure.",
                     validationFailure: initializationValidationExpected,
+                    validationFailureTypes: failures.validation,
                     pluginFactory: examples["bare"]
                 }));
             });
@@ -212,7 +214,8 @@ describe("Plugin System", function () {
             const initializationValidationExpected = {
                 canInitialize: false,
                 failureReason: failures.validation.RoleAlreadyExists,
-                reason: "A plugin with this plugin's role's name has already been installed."
+                reason: "A plugin with the role 'dancer' has already been installed.",
+                pluginFactory: examples["tango"]
             };
 
             it("via isInitializable", function () {
@@ -341,6 +344,8 @@ describe("Plugin System", function () {
             assert(system.pluginExportsOf("exports-true") === true);
         });
 
+        it.skip("Failure: NoSuchPlugin for non-existent plugin");
+
         it("for roles", function () {
             const exports = {};
 
@@ -357,5 +362,7 @@ describe("Plugin System", function () {
             system.initialize(roleWithExports);
             assert(system.roleExportsOf("exports") === exports);
         });
+
+        it.skip("Failure: NoSuchRole for non-existent role");
     });
 });

@@ -160,6 +160,8 @@ describe("PluginLoader", function () {
         }));
     });
 
+    it.skip("Failure: InconsistentlyNamedPlugin when plugin name differs from what is passed to use()", function () {});
+
     it("Error: TypeError if path is not a string.", function () {
         try {
             loader.use([], undefined);
