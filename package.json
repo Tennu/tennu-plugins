@@ -26,6 +26,6 @@
     "deep-eql": "^0.1.3"
   },
   "dependencies": {
-    "r-result": "^1.1.1"
+    "r-result": "^1.4.0"
   }
 }
