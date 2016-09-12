@@ -91,7 +91,7 @@ describe("PluginLoader", function () {
         assert(res.isOk());
     });
 
-    it("Failure: NoSuchPlugin for non-existent plugins.", function () {
+    it("Failure: CannotFindPlugin for non-existent plugins.", function () {
         const result = loader.use(["does-not-exist"], root);
 
         assert(result.isFail());
@@ -99,7 +99,7 @@ describe("PluginLoader", function () {
 
         logfn(inspect(fail));
         assert(equal(fail, {
-            failureReason: failures.NoSuchPlugin,
+            failureReason: failures.CannotFindPlugin,
             message: "Failed to locate plugin 'does-not-exist'",
             name: "does-not-exist",
             paths: ["/"]
