@@ -124,7 +124,7 @@ describe("PluginLoader", function () {
 
         logfn(inspect(fail));
         assert(equal(fail, {
-            failureType: failures.UnmetDependency,
+            failureReason: failures.UnmetDependency,
             message: "Plugin with name of 'does-not-exist' required but neither initialized nor in to be initialized list.",
             dependencyType: "name",
             dependencyName: "does-not-exist"
@@ -155,7 +155,7 @@ describe("PluginLoader", function () {
 
         logfn(fail);
         assert(equal(fail, {
-            failureType: failures.CyclicicDependency,
+            failureReason: failures.CyclicicDependency,
             message: "Two or more plugins depend on each other cyclicicly.",
             dependencies: [first, second]
         }));
