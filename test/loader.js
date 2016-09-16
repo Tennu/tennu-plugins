@@ -161,36 +161,6 @@ describe("PluginLoader", function () {
         }));
     });
 
-    it("Failure: PluginNotAnObject when plugin is not an object", function () {
-        pathToPlugins["/test_plugins/is-undefined.js"] = undefined;
-
-        const result = loader.use(["is-undefined"], root);
-        assert(result.isFail());
-        const fail = result.fail();
-
-        logfn(fail);
-        assert(equal(fail, {
-            failureReason: failures.PluginNotAnObject,
-            message: "Plugin must be an object. Given undefined for 'is-undefined'.",
-            path: "/test_plugins/is-undefined"
-        }));
-    });
-
-    it("Failure: PluginNotAnObject when plugin is null", function () {
-        pathToPlugins["/test_plugins/is-null.js"] = null;
-
-        const result = loader.use(["is-null"], root);
-        assert(result.isFail());
-        const fail = result.fail();
-
-        logfn(fail);
-        assert(equal(fail, {
-            failureReason: failures.PluginNotAnObject,
-            message: "Plugin must be an object. Given null for 'is-null'.",
-            path: "/test_plugins/is-null"
-        }));
-    });
-
     it.skip("Failure: InconsistentlyNamedPlugin when plugin name differs from what is passed to use()", function () {});
 
     it("Error: TypeError if path is not a string", function () {
