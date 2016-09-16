@@ -299,7 +299,39 @@ describe("Plugin System", function () {
             });
         });
 
-        it.skip("Failure: Adding the same hook name twice", function () {});
+        it("Failure: Adding the same hook name twice", function () {
+            const leftResult = system.initialize({
+                name: "static-left",
+                init: function () {
+                    return {
+                        staticHooks: {
+                            static: function () {}
+                        }
+                    };
+                }
+            });
+
+            leftResult.ok("Left result should be ok.");
+
+            const rightResult = system.initialize({
+                name: "static-right",
+                init: function () {
+                    return {
+                        staticHooks: {
+                            static: function () {}
+                        }
+                    };
+                }
+            });
+
+            const fail = rightResult.fail("Right result should be a failure.");
+
+            assert(equal(fail, {
+                failureReason: failures.StaticHookAlreadyExists,
+                message: "Tried to set static hook 'static', but a plugin already has that static hook.",
+                hook: "static"
+            }));
+        });
 
         it.skip("can have a symbol for the hook name", function () {});
 
