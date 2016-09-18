@@ -16,26 +16,25 @@ describe("Plugin System", function () {
     var context, system;
 
     beforeEach(function () {
-        logfn(/* newline */);
         context = {};
         system = PluginSystem(context);
     });
 
-    describe("Initialization", function () {
+    describe("Installation", function () {
         describe.skip("Failure: PluginFactory is not an object", function () {});
         // May end up making this one part of the previous when implemented.
         describe.skip("Failure: PluginFactory is null", function () {});
 
         it("of a single bare plugin", function () {
-            const initializationResult = system.initialize(examples["bare"]);
-            assert(initializationResult.isOk());
+            const installationResult = system.install(examples["bare"]);
+            assert(installationResult.isOk());
             assert(system.hasPlugin("bare"));
             assert(equal(system.loadedNames(), ["bare"]));
         });
 
         it("of multiple bare plugins", function () {
-            system.initialize(examples["bare"]);
-            system.initialize(examples["bare-alt-name"]);
+            system.install(examples["bare"]);
+            system.install(examples["bare-alt-name"]);
             assert(system.hasPlugin("bare"));
             assert(system.hasPlugin("bare-alt-name"));
         });
@@ -54,27 +53,28 @@ describe("Plugin System", function () {
                     },
                 };
 
-                const exportsResult = system.initialize(examples["exports-true"]);
+                const exportsResult = system.install(examples["exports-true"]);
+                logfn(inspect(exportsResult, {colors: true}));
                 assert(exportsResult.isOk());
-                const importsResult = system.initialize(imports);
+                const importsResult = system.install(imports);
 
                 importsResult.mapFail((fail) => logfn(inspect()));
 
                 assert(importsResult.isOk());
             });
 
-            it.skip("isInitializableWith/2 Plugin's single required plugin is assumed loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's single required plugin is not loaded. No other plugins loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's single required plugin is not loaded. Other plugins loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's single required plugin is not loaded. No other plugins loaded or assumed loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's single required plugin is not loaded. No other plugins loaded. Other plugins assumed loaded", function () {});
-            it.skip("isInitializable/1 Plugin's multiple required plugins are loaded", function () {});
-            it.skip("isInitializableWith/2 Plugin's multiple required plugins are all assumed loaded", function () {});
-            it.skip("isInitializableWith/2 Plugin's multiple required plugins are all either loaded or assumed loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's multiple required plugins where none are loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's multiple required plugins where some are loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's multiple required plugins where none are loaded or assumed loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's multiple required plugins where some are assumed loaded", function () {});
+            it.skip("isInstallableWith/2 Plugin's single required plugin is assumed loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's single required plugin is not loaded. No other plugins loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's single required plugin is not loaded. Other plugins loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's single required plugin is not loaded. No other plugins loaded or assumed loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's single required plugin is not loaded. No other plugins loaded. Other plugins assumed loaded", function () {});
+            it.skip("isInstallable/1 Plugin's multiple required plugins are loaded", function () {});
+            it.skip("isInstallableWith/2 Plugin's multiple required plugins are all assumed loaded", function () {});
+            it.skip("isInstallableWith/2 Plugin's multiple required plugins are all either loaded or assumed loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's multiple required plugins where none are loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's multiple required plugins where some are loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's multiple required plugins where none are loaded or assumed loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's multiple required plugins where some are assumed loaded", function () {});
         });
 
 
@@ -102,25 +102,25 @@ describe("Plugin System", function () {
                     }
                 };
 
-                const roleResult = system.initialize(role);
+                const roleResult = system.install(role);
                 assert(roleResult.isOk());
-                const usesRoleResult = system.initialize(usesRole);
+                const usesRoleResult = system.install(usesRole);
                 usesRoleResult.mapFail((fail) => logfn(inspect(fail)));
                 assert(usesRoleResult.isOk());
             });
 
-            it.skip("isInitializableWith/2 Plugin's single required role is assumed loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's single required role is not loaded. No other plugins loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's single required role is not loaded. Other plugins loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's single required role is not loaded. No other plugins loaded or assumed loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's single required role is not loaded. No other plugins loaded. Other plugins assumed loaded", function () {});
-            it.skip("isInitializable/1 Plugin's multiple required roles are loaded", function () {});
-            it.skip("isInitializableWith/2 Plugin's multiple required roles are all assumed loaded", function () {});
-            it.skip("isInitializableWith/2 Plugin's multiple required roles are all either loaded or assumed loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's multiple required roles where none are loaded", function () {});
-            it.skip("Failure: isInitializable/1 Plugin's multiple required roles where some are loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's multiple required roles where none are loaded or assumed loaded", function () {});
-            it.skip("Failure: isInitializableWith/2 Plugin's multiple required roles where some are assumed loaded", function () {});
+            it.skip("isInstallableWith/2 Plugin's single required role is assumed loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's single required role is not loaded. No other plugins loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's single required role is not loaded. Other plugins loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's single required role is not loaded. No other plugins loaded or assumed loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's single required role is not loaded. No other plugins loaded. Other plugins assumed loaded", function () {});
+            it.skip("isInstallable/1 Plugin's multiple required roles are loaded", function () {});
+            it.skip("isInstallableWith/2 Plugin's multiple required roles are all assumed loaded", function () {});
+            it.skip("isInstallableWith/2 Plugin's multiple required roles are all either loaded or assumed loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's multiple required roles where none are loaded", function () {});
+            it.skip("Failure: isInstallable/1 Plugin's multiple required roles where some are loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's multiple required roles where none are loaded or assumed loaded", function () {});
+            it.skip("Failure: isInstallableWith/2 Plugin's multiple required roles where some are assumed loaded", function () {});
         });
 
         it("function gets a reference to the context", function () {
@@ -132,12 +132,12 @@ describe("Plugin System", function () {
                 name: "context-test"
             };
 
-            const result = system.initialize(plugin);
+            const result = system.install(plugin);
             assert(result.isOk());
         });
 
         it("of a plugin with a role", function () {
-            const result = system.initialize(examples["waltz"]);
+            const result = system.install(examples["waltz"]);
             if (result.isFail()) {
                 logfn(inspect(result.fail()));
             }
@@ -163,67 +163,68 @@ describe("Plugin System", function () {
                 },
             };
 
-            system.initialize(addsTestHook);
-            system.initialize(examples["has-test-hook"]);
+            system.install(addsTestHook);
+            system.install(examples["has-test-hook"]);
         });
 
-        describe("Failure: [PluginAlreadyExists] Initialization of two plugins with the same name", function () {
+        describe("Failure: [PluginAlreadyExists] Installation of two plugins with the same name", function () {
             beforeEach(function () {
-                const result = system.initialize(examples["bare"]);
+                const result = system.install(examples["bare"]);
                 assert(result.isOk());
             });
 
-            const initializationValidationExpected = {
-                canInitialize: false,
+            const installationValidationExpected = {
+                canInstall: false,
                 failureReason: failures.validation.PluginAlreadyExists,
                 reason: "A plugin with the name 'bare' has already been installed.",
                 pluginFactory: examples["bare"]
             };
 
-            it("via isInitializable()", function () {
-                const validation = system.isInitializable(examples["bare"]);
+            it("via isInstallable()", function () {
+                const validation = system.isInstallable(examples["bare"]);
 
-                assert(equal(validation, initializationValidationExpected));
+                logfn(inspect(validation, {colors: true}));
+                assert(equal(validation, installationValidationExpected));
             });
 
-            it("via initialize()", function () {
-                const result = system.initialize(examples["bare"]);
+            it("via install()", function () {
+                const result = system.install(examples["bare"]);
                 assert(result.isFail());
                 const validationFailure = result.fail();
                 logfn(validationFailure);
                 assert(equal(validationFailure, {
-                    failureReason: failures.CannotInitialize,
-                    message: "The plugin cannot be initialized. For why, check the validationFailure.",
-                    validationFailure: initializationValidationExpected,
+                    failureReason: failures.CannotInstall,
+                    message: "The plugin cannot be installed. For why, check the validationFailure.",
+                    validationFailure: installationValidationExpected,
                     validationFailureTypes: failures.validation,
                     pluginFactory: examples["bare"]
                 }));
             });
         });
 
-        describe("Failure: [RoleAlreadyExists] Initialization of two plugins with the same role", function () {
+        describe("Failure: [RoleAlreadyExists] Installation of two plugins with the same role", function () {
             beforeEach(function () {
-                const result = system.initialize(examples["waltz"]);
+                const result = system.install(examples["waltz"]);
                 assert(result.isOk());
             });
 
-            const initializationValidationExpected = {
-                canInitialize: false,
+            const installationValidationExpected = {
+                canInstall: false,
                 failureReason: failures.validation.RoleAlreadyExists,
                 reason: "A plugin with the role 'dancer' has already been installed.",
                 pluginFactory: examples["tango"]
             };
 
-            it("via isInitializable", function () {
-                const validation = system.isInitializable(examples["tango"]);
+            it("via isInstallable", function () {
+                const validation = system.isInstallable(examples["tango"]);
 
-                assert(equal(validation, initializationValidationExpected));
+                assert(equal(validation, installationValidationExpected));
             });
         });
 
-        describe.skip("Failure: isInitializable/1 Plugin's name property is not a string", function () {});
-        describe.skip("Failure: isInitializable/1 Plugin's name collides with an already loaded plugin", function () {});
-        describe.skip("Failure: isInitializableWith/2 Plugin's name collides with already assumed plugin's name", function () {});
+        describe.skip("Failure: isInstallable/1 Plugin's name property is not a string", function () {});
+        describe.skip("Failure: isInstallable/1 Plugin's name collides with an already loaded plugin", function () {});
+        describe.skip("Failure: isInstallableWith/2 Plugin's name collides with already assumed plugin's name", function () {});
 
     });
 
@@ -237,14 +238,14 @@ describe("Plugin System", function () {
         });
 
         it("hooks into every loaded module", function () {
-            const result = system.initialize(examples["has-test-hook"]);
+            const result = system.install(examples["has-test-hook"]);
             assert(result.isOk());
             assert(spy.calledOnce);
             assert(spy.calledWith("has-test-hook", true));
         });
 
         it("skips plugins not using the hook", function () {
-            const result = system.initialize(examples["bare"]);
+            const result = system.install(examples["bare"]);
             assert(result.isOk());
             assert(!spy.called);
         });
@@ -278,7 +279,7 @@ describe("Plugin System", function () {
         });
 
         it("hooks into every loaded module", function () {
-            system.initialize({
+            system.install({
                 test: setinel,
                 name: "TEST",
                 init: function () {
@@ -290,7 +291,7 @@ describe("Plugin System", function () {
         });
 
         it("skips plugins not using the hook", function () {
-            system.initialize({
+            system.install({
                 name: "TEST",
                 init: function () {
                     assert(!spy.called);
@@ -300,7 +301,7 @@ describe("Plugin System", function () {
         });
 
         it("Failure: Adding the same hook name twice", function () {
-            const leftResult = system.initialize({
+            const leftResult = system.install({
                 name: "static-left",
                 init: function () {
                     return {
@@ -313,7 +314,7 @@ describe("Plugin System", function () {
 
             leftResult.ok("Left result should be ok.");
 
-            const rightResult = system.initialize({
+            const rightResult = system.install({
                 name: "static-right",
                 init: function () {
                     return {
@@ -343,7 +344,7 @@ describe("Plugin System", function () {
 
     describe("Has", function () {
         it("for plugins", function () {
-            system.initialize({
+            system.install({
                 name: "module",
                 init: function () { return {}; },
             });
@@ -352,7 +353,7 @@ describe("Plugin System", function () {
         });
 
         it("for roles", function () {
-            system.initialize({
+            system.install({
                 init: function () { return {}; },
                 name: "provides-role",
                 role: "role"
@@ -364,7 +365,7 @@ describe("Plugin System", function () {
 
     describe("Exports Getters", function () {
         it("for plugins", function () {
-            const result = system.initialize(examples["exports-true"]);
+            const result = system.install(examples["exports-true"]);
             if (result.isFail()) {
                 logfn(inspect(result.fail()));
             }
@@ -389,7 +390,7 @@ describe("Plugin System", function () {
                 role: "exports"
             };
 
-            system.initialize(roleWithExports);
+            system.install(roleWithExports);
             assert(system.roleExportsOf("exports").ok() === exports);
         });
 

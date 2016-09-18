@@ -21,8 +21,6 @@ describe("PluginLoader", function () {
     let loader, fs, require, system, pathToPlugins;
 
     beforeEach(function () {
-        logfn(/* newline */);
-
         // Tests will add paths here with values of Plugins.
         pathToPlugins = {};
 
@@ -55,6 +53,7 @@ describe("PluginLoader", function () {
 
         const result = loader.use(["plugin"], root);
 
+        result.debug(logfn, {colors: true});
         assert(result.isOk());
     });
 
@@ -125,7 +124,7 @@ describe("PluginLoader", function () {
         logfn(inspect(fail));
         assert(equal(fail, {
             failureReason: failures.UnmetDependency,
-            message: "Plugin with name of 'does-not-exist' required but neither initialized nor in to be initialized list.",
+            message: "Plugin with name of 'does-not-exist' required but neither installed nor in to be installed list.",
             dependencyType: "name",
             dependencyName: "does-not-exist"
         }));
