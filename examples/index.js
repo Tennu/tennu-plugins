@@ -1,4 +1,7 @@
 module.exports = {
+    // Failures
+    failures: require("./failures"),
+    
     // Bare Plugins
     "bare": require("./bare"),
     "bare-alt-name": require("./bare-alt-name"),
