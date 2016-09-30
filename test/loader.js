@@ -256,7 +256,7 @@ describe("PluginLoader", function () {
             message: "Installing the plugin 'plugin-not-an-object' failed.",
             innerFailure: {
                 failureType: failures.install.PluginNotAnObject,
-                message: "Plugin instance from 'plugin-not-an-object' must be an object. Init function returned `undefined`, undefined, instead.",
+                message: "Plugin 'plugin-not-an-object' must be an object. Init function returned `undefined`, undefined, instead.",
                 pluginFactory: pathToPlugins["/test_plugins/plugin-not-an-object.js"]
             },
             innerFailureTypes: failures.install,

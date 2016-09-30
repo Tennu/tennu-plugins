@@ -296,13 +296,13 @@ describe("The Plugin System", function () {
             assert(system.hasRole("dancer"));
         });
 
-        it("of a plugin with custom hooks", function (done) {
+        it("of a plugin with custom afterInit hooks", function (done) {
             const addsTestHook = {
                 name: "adds-test-hook",
 
                 init: function () {
                     return {
-                        hooks: {
+                        afterInitHooks: {
                             "test": function (name, value) {
                                 assert(name === "has-test-hook");
                                 assert(value === true);
@@ -322,6 +322,10 @@ describe("The Plugin System", function () {
             .ok("Failed to install has-test-hook plugin.");
         });
 
+        it.skip("of a plugin with custom beforeInit hooks");
+        it.skip("of a plugin with custom afterInit hooks (deprecated `hooks` property)");
+        it.skip("of a plugin with custom beforeInit hooks (deprecated `staticHooks` property)");
+
         it.skip("Failure: [CanInstallFailed] When plugin cannot be installed due to dependency issues.");
 
         it("Failure: [PluginNotAnObject] When plugin returned is not an object.", function () {
@@ -330,7 +334,7 @@ describe("The Plugin System", function () {
 
             const expectedFailure = {
                 failureType: PluginNotAnObject,
-                message: "Plugin instance from 'PluginNotAnObject' must be an object. Init function returned `undefined`, undefined, instead.",
+                message: "Plugin 'PluginNotAnObject' must be an object. Init function returned `undefined`, undefined, instead.",
                 pluginFactory: examples.failures.PluginNotAnObject
             };
 
@@ -341,16 +345,16 @@ describe("The Plugin System", function () {
             assert(equal(actualFailure, expectedFailure));
         });
 
-        it.skip("Failure: [InstanceHookAlreadyExists] When plugin tries to install instance hook already installed.");
-        it.skip("Failure: [StaticHookAlreadyExists] When plugin tries to install static hook already installed.");
+        it.skip("Failure: [AfterInitHookAlreadyExists] When plugin tries to install afterInit hook already installed.");
+        it.skip("Failure: [BeforeInitHookAlreadyExists] When plugin tries to install beforeInit hook already installed.");
     });
 
-    describe("Instance Hooks", function () {
+    describe("AfterInit Hooks", function () {
         var spy;
 
         beforeEach(function () {
             spy = sinon.spy();
-            const result = system.addInstanceHook("test", spy);
+            const result = system.addAfterInitHook("test", spy);
             assert(result.isOk());
         });
 
@@ -368,12 +372,12 @@ describe("The Plugin System", function () {
         });
 
         it("Failure: Adding the same hook name twice", function () {
-            const result = system.addInstanceHook("test", function () {});
+            const result = system.addAfterInitHook("test", function () {});
             assert(result.isFail());
             const fail = result.fail();
             assert(equal(fail, {
-                failureType: failures.InstanceHookAlreadyExists,
-                message: "Tried to set instance hook 'test', but a plugin already has that instance hook.",
+                failureType: failures.AfterInitHookAlreadyExists,
+                message: "Tried to set afterInit hook 'test', but a plugin already has that afterInit hook.",
                 hook: "test"
             }));
         });
@@ -386,13 +390,13 @@ describe("The Plugin System", function () {
         it.skip("Error: Hook function not a function.", function () {});
     });
 
-    describe("Static Hooks", function () {
+    describe("BeforeInit Hooks", function () {
         var spy, setinel;
 
         beforeEach(function () {
             spy = sinon.spy();
             setinel = {};
-            system.addStaticHook("test", spy);
+            system.addBeforeInitHook("test", spy);
         });
 
         it("hooks into every loaded module", function () {
@@ -417,16 +421,16 @@ describe("The Plugin System", function () {
             });
         });
 
-        it("Failure: [StaticHookAlreadyExists] Adding the same hook name twice", function () {
-            const StaticHookAlreadyExists = failures.addStaticHook.StaticHookAlreadyExists;
-            assert(typeof StaticHookAlreadyExists === "symbol");
+        it("Failure: [BeforeInitHookAlreadyExists] Adding the same hook name twice", function () {
+            const BeforeInitHookAlreadyExists = failures.addBeforeInitHook.BeforeInitHookAlreadyExists;
+            assert(typeof BeforeInitHookAlreadyExists === "symbol");
 
             const leftResult = system.install({
-                name: "static-left",
+                name: "beforeInit-left",
                 init: function () {
                     return {
-                        staticHooks: {
-                            static: function () {}
+                        beforeInitHooks: {
+                            beforeInit: function () {}
                         }
                     };
                 }
@@ -435,11 +439,11 @@ describe("The Plugin System", function () {
             leftResult.ok("Left result should be ok.");
 
             const rightResult = system.install({
-                name: "static-right",
+                name: "beforeInit-right",
                 init: function () {
                     return {
-                        staticHooks: {
-                            static: function () {}
+                        beforeInitHooks: {
+                            beforeInit: function () {}
                         }
                     };
                 }
@@ -448,9 +452,9 @@ describe("The Plugin System", function () {
             const fail = rightResult.debug(logfn).fail("Right result should be a failure.");
 
             const expectedFailure = {
-                failureType: StaticHookAlreadyExists,
-                message: "Tried to set static hook 'static', but a plugin already has that static hook.",
-                hook: "static"
+                failureType: BeforeInitHookAlreadyExists,
+                message: "Tried to set beforeInit hook 'beforeInit', but a plugin already has that beforeInit hook.",
+                hook: "beforeInit"
             }
 
             assert(equal(fail, expectedFailure));
